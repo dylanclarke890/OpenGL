@@ -33,7 +33,11 @@ int main(void)
 
   if (glewInit() != GLEW_OK) 
   {
-    std::cout << "Error initialising glew" << std::endl;
+    std::cout << "Error initialising glew!" << std::endl;
+  }
+  else 
+  {
+    std::cout << "Initialised GLEW - " << glGetString(GL_VERSION) << std::endl;
   }
 
   /* Loop until the user closes the window */
