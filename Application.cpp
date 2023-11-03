@@ -15,25 +15,24 @@ void LegacyOpenGL_DrawTriangle()
 
 void InitGlew()
 {
-  if (glewInit() != GLEW_OK)
+  if (glewInit() == GLEW_OK)
   {
-    std::cout << "Error initialising glew!" << std::endl;
+    std::cout << "Initialised GLEW - " << glGetString(GL_VERSION) << std::endl;
   }
   else
   {
-    std::cout << "Initialised GLEW - " << glGetString(GL_VERSION) << std::endl;
+    std::cout << "Error initialising glew!" << std::endl;
   }
 }
 
 int main(void)
 {
-  GLFWwindow* window;
-
-  /* Initialize the library */
+  // Initialize the OpenGL library.
   if (!glfwInit())
     return -1;
 
-  /* Create a windowed mode window and its OpenGL context */
+  // Create a windowed mode window and it's OpenGL context
+  GLFWwindow* window;
   window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
   if (!window)
   {
@@ -41,29 +40,41 @@ int main(void)
     return -1;
   }
 
-  /* Make the window's context current */
+  // Create the OpenGL context.
   glfwMakeContextCurrent(window);
+
+  // Init GLEW after creating a valid OpenGL context.
   InitGlew();
 
   // Defining a triangle to draw later in Modern OpenGL.
-  float positions[6] = { -0.5f, -0.5,  0.0f, 0.5f, 0.5f, -0.5f };
+  float positions[6] = { 
+    -0.5f, -0.5,
+    0.0f, 0.5f, 
+    0.5f, -0.5f 
+  };
+
   unsigned int buffer;
   glGenBuffers(1, &buffer);
   glBindBuffer(GL_ARRAY_BUFFER, buffer);
   glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
 
-  /* Loop until the user closes the window */
+  // Set up and enable vertex attributes.
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (const void*)0);
+  glEnableVertexAttribArray(0);
+
+  // Loop until the user closes the window
   while (!glfwWindowShouldClose(window))
   {
-    /* Render here */
+    // Render here
     glClear(GL_COLOR_BUFFER_BIT);
 
+    // Modern OpenGL triangle.
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    /* Swap front and back buffers */
+    // Swap front and back buffers
     glfwSwapBuffers(window);
 
-    /* Poll for and process events */
+    // Poll for and process events
     glfwPollEvents();
   }
 
