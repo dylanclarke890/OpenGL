@@ -1,10 +1,10 @@
-#include <GL/glew.h>
+#include <GL/glew.h> // Include before GLFW
 #include <GLFW/glfw3.h>
 
 #include <iostream>
 
 // How to draw a triangle in Legacy OpenGL.
-void LegacyOpenGL_DrawTriangle()
+static void LegacyOpenGL_DrawTriangle()
 {
   glBegin(GL_TRIANGLES);
   glVertex2f(-0.5f, -0.5f);
@@ -13,7 +13,29 @@ void LegacyOpenGL_DrawTriangle()
   glEnd();
 }
 
-void InitGlew()
+static GLFWwindow* InitOpenGL()
+{
+  // Initialize the OpenGL library.
+  if (glfwInit() == GLFW_FALSE)
+    return nullptr;
+
+  // Create a windowed mode window and it's OpenGL context
+  GLFWwindow* window;
+  window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+  if (!window)
+  {
+    glfwTerminate();
+    return nullptr;
+  }
+
+  // Create the OpenGL context.
+  glfwMakeContextCurrent(window);
+
+  return window;
+}
+
+// Init GLEW. Should be called after creating a valid OpenGL context.
+static void InitGlew()
 {
   if (glewInit() == GLEW_OK)
   {
@@ -25,32 +47,58 @@ void InitGlew()
   }
 }
 
-int main(void)
+static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
-  // Initialize the OpenGL library.
-  if (!glfwInit())
-    return -1;
+  unsigned int id = glCreateShader(type);
+  
+  const char* src = source.c_str();
+  glShaderSource(id, 1, &src, nullptr);
+  glCompileShader(id);
 
-  // Create a windowed mode window and it's OpenGL context
-  GLFWwindow* window;
-  window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
-  if (!window)
+  int result;
+  glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+  
+  if (result == GL_FALSE)
   {
-    glfwTerminate();
-    return -1;
+    int length;
+    glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+
+    char* message = (char*)alloca(length * sizeof(char));
+    glGetShaderInfoLog(id, length, &length, message);
+
+    std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!" << std::endl;
+    std::cout << message << std::endl;
+    return 0;
   }
 
-  // Create the OpenGL context.
-  glfwMakeContextCurrent(window);
+  return id;
+}
 
-  // Init GLEW after creating a valid OpenGL context.
-  InitGlew();
+static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
+{
+  unsigned int program = glCreateProgram();
+  unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
+  unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
 
+  glAttachShader(program, vs);
+  glAttachShader(program, fs);
+  
+  glLinkProgram(program);
+  glValidateProgram(program);
+
+  glDeleteShader(vs);
+  glDeleteShader(fs);
+
+  return program;
+}
+
+void InitTriangleVertexBuffer()
+{
   // Defining a triangle to draw later in Modern OpenGL.
-  float positions[6] = { 
+  float positions[6] = {
     -0.5f, -0.5,
-    0.0f, 0.5f, 
-    0.5f, -0.5f 
+    0.0f, 0.5f,
+    0.5f, -0.5f
   };
 
   unsigned int buffer;
@@ -61,6 +109,42 @@ int main(void)
   // Set up and enable vertex attributes.
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (const void*)0);
   glEnableVertexAttribArray(0);
+}
+
+int main(void)
+{
+  GLFWwindow* window = InitOpenGL();
+  if (!window)
+    return -1;
+
+  InitGlew();
+
+  InitTriangleVertexBuffer();
+
+  std::string vertexShader =
+    "#version 330 core\n"
+    "\n"
+    "layout(location = 0) in vec4 position;\n"
+    "\n"
+    "void main()\n"
+    "{\n"
+    "\n"
+    "   gl_Position = position;\n"
+    "}\n";
+
+  std::string fragmentShader =
+    "#version 330 core\n"
+    "\n"
+    "layout(location = 0) out vec4 color;\n"
+    "\n"
+    "void main()\n"
+    "{\n"
+    "\n"
+    "   color = vec4(1.0, 0.0, 0.0, 1.0);\n"
+    "}\n";
+
+  unsigned int shaderProgram = CreateShader(vertexShader, fragmentShader);
+  glUseProgram(shaderProgram);
 
   // Loop until the user closes the window
   while (!glfwWindowShouldClose(window))
@@ -77,6 +161,8 @@ int main(void)
     // Poll for and process events
     glfwPollEvents();
   }
+
+  glDeleteProgram(shaderProgram);
 
   glfwTerminate();
   return 0;
