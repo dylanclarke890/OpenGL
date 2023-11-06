@@ -4,6 +4,72 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cassert>
+
+#define OpenGLCall(function)\
+  OpenGL_ClearErrors();\
+  function;\
+  assert(OpenGL_LogCall(#function, __FILE__, __LINE__));
+
+static void OpenGL_ClearErrors() 
+{
+  while (glGetError() != GL_NO_ERROR);
+}
+
+static bool OpenGL_LogCall(const char* function, const char* file, int line) 
+{
+  while (GLenum error = glGetError())
+  {
+    std::cout << "[ERROR] [OPENGL]: " << error << std::endl;
+    std::cout << "file: " << file << " line: " << line << std::endl;
+    return false;
+  }
+  return true;
+}
+
+// How to draw a triangle in Legacy OpenGL.
+static void LegacyOpenGL_DrawTriangle()
+{
+  glBegin(GL_TRIANGLES);
+  glVertex2f(-0.5f, -0.5f);
+  glVertex2f(0.0f, 0.5f);
+  glVertex2f(0.5f, -0.5f);
+  glEnd();
+}
+
+static GLFWwindow* InitOpenGL()
+{
+  // Initialize the OpenGL library.
+  if (glfwInit() == GLFW_FALSE)
+    return nullptr;
+
+  // Create a windowed mode window and it's OpenGL context
+  GLFWwindow* window;
+  window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+  if (!window)
+  {
+    glfwTerminate();
+    return nullptr;
+  }
+
+  // Create the OpenGL context.
+  OpenGLCall(glfwMakeContextCurrent(window));
+  
+  return window;
+}
+
+// Init GLEW. Should be called after creating a valid OpenGL context.
+static void InitGlew()
+{
+  if (glewInit() == GLEW_OK)
+  {
+    std::cout << "Initialised GLEW - " << glGetString(GL_VERSION) << std::endl;
+  }
+  else
+  {
+    std::cout << "Error initialising glew!" << std::endl;
+  }
+}
 
 struct ShaderProgramSource 
 {
@@ -38,57 +104,13 @@ static ShaderProgramSource ParseShader(const std::string& filepath)
 
       }
     }
-    else
+    else if (type != ShaderType::NONE)
     {
       ss[(int)type] << line << "\n";
     }
   }
 
   return { ss[0].str(), ss[1].str() };
-}
-
-// How to draw a triangle in Legacy OpenGL.
-static void LegacyOpenGL_DrawTriangle()
-{
-  glBegin(GL_TRIANGLES);
-  glVertex2f(-0.5f, -0.5f);
-  glVertex2f(0.0f, 0.5f);
-  glVertex2f(0.5f, -0.5f);
-  glEnd();
-}
-
-static GLFWwindow* InitOpenGL()
-{
-  // Initialize the OpenGL library.
-  if (glfwInit() == GLFW_FALSE)
-    return nullptr;
-
-  // Create a windowed mode window and it's OpenGL context
-  GLFWwindow* window;
-  window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
-  if (!window)
-  {
-    glfwTerminate();
-    return nullptr;
-  }
-
-  // Create the OpenGL context.
-  glfwMakeContextCurrent(window);
-
-  return window;
-}
-
-// Init GLEW. Should be called after creating a valid OpenGL context.
-static void InitGlew()
-{
-  if (glewInit() == GLEW_OK)
-  {
-    std::cout << "Initialised GLEW - " << glGetString(GL_VERSION) << std::endl;
-  }
-  else
-  {
-    std::cout << "Error initialising glew!" << std::endl;
-  }
 }
 
 static unsigned int CompileShader(unsigned int type, const std::string& source)
@@ -155,39 +177,82 @@ void InitTriangleVertexBuffer()
   glEnableVertexAttribArray(0);
 }
 
+void InitSquareVertexBuffer()
+{
+  // Defining square positions to draw later in Modern OpenGL.
+  float positions[] = {
+    -0.5f, -0.5f, // 0
+    0.5f, -0.5f,  // 1
+    0.5f, 0.5f,   // 2
+    -0.5f, 0.5f   // 3
+  };
+
+  // Using an index buffer to avoid storing data for the same vertex multiple times
+  unsigned int indices[] = {
+    0, 1, 2, // Indices of positions to use for first triangle
+    2, 3, 0  // Indices of positions to use for second triangle
+  };
+
+  unsigned int buffer;
+  glGenBuffers(1, &buffer);
+  glBindBuffer(GL_ARRAY_BUFFER, buffer);
+  glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
+
+  // Set up and enable vertex attributes.
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (const void*)0);
+  glEnableVertexAttribArray(0);
+
+  unsigned int ibo;
+  glGenBuffers(1, &ibo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+}
+
+
+static bool s_IsDrawingTriangle = false;
 int main(void)
 {
-  GLFWwindow* window = InitOpenGL();
+  OpenGLCall(GLFWwindow* window = InitOpenGL());
   if (!window)
     return -1;
 
   InitGlew();
+  OpenGLCall(
+    if (s_IsDrawingTriangle)
+      InitTriangleVertexBuffer();
+    else
+      InitSquareVertexBuffer();
+  );
 
-  // Setting up triangle buffers / shaders
-  InitTriangleVertexBuffer();
   ShaderProgramSource shaderSource = ParseShader("Basic.shader");
   unsigned int shaderProgram = CreateShader(shaderSource);
 
-  glUseProgram(shaderProgram);
+  OpenGLCall(glUseProgram(shaderProgram));
 
   // Loop until the user closes the window
   while (!glfwWindowShouldClose(window))
   {
     // Render here
-    glClear(GL_COLOR_BUFFER_BIT);
+    OpenGLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-    // Modern OpenGL triangle.
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    if (s_IsDrawingTriangle) 
+    {
+      OpenGLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
+    }
+    else
+    {
+      OpenGLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
+    }
 
     // Swap front and back buffers
-    glfwSwapBuffers(window);
+    OpenGLCall(glfwSwapBuffers(window));
 
     // Poll for and process events
-    glfwPollEvents();
+    OpenGLCall(glfwPollEvents());
   }
 
-  glDeleteProgram(shaderProgram);
+  OpenGLCall(glDeleteProgram(shaderProgram));
+  OpenGLCall(glfwTerminate());
 
-  glfwTerminate();
   return 0;
 }
