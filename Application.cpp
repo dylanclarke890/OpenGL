@@ -6,26 +6,9 @@
 #include <sstream>
 #include <cassert>
 
-#define OpenGLCall(function)\
-  OpenGL_ClearErrors();\
-  function;\
-  assert(OpenGL_LogCall(#function, __FILE__, __LINE__));
-
-static void OpenGL_ClearErrors() 
-{
-  while (glGetError() != GL_NO_ERROR);
-}
-
-static bool OpenGL_LogCall(const char* function, const char* file, int line) 
-{
-  while (GLenum error = glGetError())
-  {
-    std::cout << "[ERROR] [OPENGL]: " << error << std::endl;
-    std::cout << "file: " << file << " line: " << line << std::endl;
-    return false;
-  }
-  return true;
-}
+#include "Renderer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 // How to draw a triangle in Legacy OpenGL.
 static void LegacyOpenGL_DrawTriangle()
@@ -175,78 +158,74 @@ int main(void)
   GLFWwindow* window = InitOpenGL();
   assert(window);
 
-  // Defining square positions to draw later in Modern OpenGL.
-  float positions[] = {
-    -0.5f, -0.5f, // 0
-    0.5f, -0.5f,  // 1
-    0.5f, 0.5f,   // 2
-    -0.5f, 0.5f   // 3
-  };
-
-  // Using an index buffer to avoid storing data for the same vertex multiple times
-  unsigned int indices[] = {
-    0, 1, 2, // Indices of positions to use for first triangle
-    2, 3, 0  // Indices of positions to use for second triangle
-  };
-
-  // Create and bind the vertex array
-  unsigned int vao;
-  OpenGLCall(glGenVertexArrays(1, &vao));
-  OpenGLCall(glBindVertexArray(vao));
-
-  unsigned int buffer;
-  OpenGLCall(glGenBuffers(1, &buffer));
-  OpenGLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));
-  OpenGLCall(glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW));
-
-  // Set up and enable vertex attributes.
-  OpenGLCall(glEnableVertexAttribArray(0));
-  OpenGLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (const void*)0));
-
-  unsigned int ibo;
-  OpenGLCall(glGenBuffers(1, &ibo));
-  OpenGLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
-  OpenGLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW));
-
-  ShaderProgramSource shaderSource = ParseShader("Triangle");
-  unsigned int shaderProgram = CreateShader(shaderSource);
-
-  OpenGLCall(glUseProgram(0));
-  OpenGLCall(glBindVertexArray(0));
-  OpenGLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
-  OpenGLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
-  OpenGLCall(int location = glGetUniformLocation(shaderProgram, "u_Color"));
-  assert(location != -1);
-
-  float red = 0.0f;
-  float increment = 0.05f;
-
-  // Loop until the user closes the window
-  while (!glfwWindowShouldClose(window))
   {
-    // Render here
-    OpenGLCall(glClear(GL_COLOR_BUFFER_BIT));
+    // Defining square positions to draw later in Modern OpenGL.
+    float positions[] = {
+      -0.5f, -0.5f, // 0
+      0.5f, -0.5f,  // 1
+      0.5f, 0.5f,   // 2
+      -0.5f, 0.5f   // 3
+    };
 
-    OpenGLCall(glUseProgram(shaderProgram));
-    OpenGLCall(glUniform4f(location, red, 0.3f, 0.8f, 1.0f));
+    // Using an index buffer to avoid storing data for the same vertex multiple times
+    unsigned int indices[] = {
+      0, 1, 2, // Indices of positions to use for first triangle
+      2, 3, 0  // Indices of positions to use for second triangle
+    };
+
+    // Create and bind the vertex array
+    unsigned int vao;
+    OpenGLCall(glGenVertexArrays(1, &vao));
     OpenGLCall(glBindVertexArray(vao));
-    
-    OpenGLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
-    if (abs(red) >= 1) 
-      increment *= -1;
-    red += increment;
+    VertexBuffer vertexBuffer(positions, 4 * 2 * sizeof(float));
 
-    // Swap front and back buffers
-    glfwSwapBuffers(window);
+    // Set up and enable vertex attributes.
+    OpenGLCall(glEnableVertexAttribArray(0));
+    OpenGLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (const void*)0));
 
-    // Poll for and process events
-    glfwPollEvents();
+    IndexBuffer indexBuffer(indices, 6);
+
+    ShaderProgramSource shaderSource = ParseShader("Triangle");
+    unsigned int shaderProgram = CreateShader(shaderSource);
+
+    OpenGLCall(glUseProgram(0));
+    OpenGLCall(glBindVertexArray(0));
+    OpenGLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+    OpenGLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+
+    OpenGLCall(int location = glGetUniformLocation(shaderProgram, "u_Color"));
+    assert(location != -1);
+
+    float red = 0.0f;
+    float increment = 0.05f;
+
+    // Loop until the user closes the window
+    while (!glfwWindowShouldClose(window))
+    {
+      // Render here
+      OpenGLCall(glClear(GL_COLOR_BUFFER_BIT));
+
+      OpenGLCall(glUseProgram(shaderProgram));
+      OpenGLCall(glUniform4f(location, red, 0.3f, 0.8f, 1.0f));
+      OpenGLCall(glBindVertexArray(vao));
+
+      OpenGLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+
+      if (abs(red) >= 1)
+        increment *= -1;
+      red += increment;
+
+      // Swap front and back buffers
+      glfwSwapBuffers(window);
+
+      // Poll for and process events
+      glfwPollEvents();
+    }
+
+    OpenGLCall(glDeleteProgram(shaderProgram));
   }
 
-  OpenGLCall(glDeleteProgram(shaderProgram));
   glfwTerminate();
-
   return 0;
 }
