@@ -37,26 +37,23 @@ static void LegacyOpenGL_DrawTriangle()
   glEnd();
 }
 
-static GLFWwindow* InitOpenGL()
+void InitTriangleVertexBuffer()
 {
-  // Initialize the OpenGL library.
-  if (glfwInit() == GLFW_FALSE)
-    return nullptr;
+  // Defining a triangle to draw later in Modern OpenGL.
+  float positions[6] = {
+    -0.5f, -0.5,
+    0.0f, 0.5f,
+    0.5f, -0.5f
+  };
 
-  // Create a windowed mode window and it's OpenGL context
-  GLFWwindow* window;
-  window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
-  if (!window)
-  {
-    glfwTerminate();
-    return nullptr;
-  }
+  unsigned int buffer;
+  glGenBuffers(1, &buffer);
+  glBindBuffer(GL_ARRAY_BUFFER, buffer);
+  glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
 
-  // Create the OpenGL context.
-  glfwMakeContextCurrent(window);
-  
-  glfwSwapInterval(1);
-  return window;
+  // Set up and enable vertex attributes.
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (const void*)0);
+  glEnableVertexAttribArray(0);
 }
 
 // Init GLEW. Should be called after creating a valid OpenGL context.
@@ -70,6 +67,34 @@ static void InitGlew()
   {
     std::cout << "Error initialising glew!" << std::endl;
   }
+}
+
+static GLFWwindow* InitOpenGL()
+{
+  // Initialize the OpenGL library.
+  if (glfwInit() == GLFW_FALSE)
+    return nullptr;
+
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+  // Create a windowed mode window and it's OpenGL context
+  GLFWwindow* window;
+  window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+  if (!window)
+  {
+    glfwTerminate();
+    return nullptr;
+  }
+
+  // Create the OpenGL context.
+  glfwMakeContextCurrent(window);
+  glfwSwapInterval(1);
+
+  InitGlew();
+
+  return window;
 }
 
 struct ShaderProgramSource 
@@ -145,27 +170,11 @@ static unsigned int CreateShader(const ShaderProgramSource& source)
   return program;
 }
 
-void InitTriangleVertexBuffer()
+int main(void)
 {
-  // Defining a triangle to draw later in Modern OpenGL.
-  float positions[6] = {
-    -0.5f, -0.5,
-    0.0f, 0.5f,
-    0.5f, -0.5f
-  };
+  GLFWwindow* window = InitOpenGL();
+  assert(window);
 
-  unsigned int buffer;
-  glGenBuffers(1, &buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, buffer);
-  glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
-
-  // Set up and enable vertex attributes.
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (const void*)0);
-  glEnableVertexAttribArray(0);
-}
-
-void InitSquareVertexBuffer()
-{
   // Defining square positions to draw later in Modern OpenGL.
   float positions[] = {
     -0.5f, -0.5f, // 0
@@ -180,39 +189,32 @@ void InitSquareVertexBuffer()
     2, 3, 0  // Indices of positions to use for second triangle
   };
 
+  // Create and bind the vertex array
+  unsigned int vao;
+  OpenGLCall(glGenVertexArrays(1, &vao));
+  OpenGLCall(glBindVertexArray(vao));
+
   unsigned int buffer;
-  glGenBuffers(1, &buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, buffer);
-  glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
+  OpenGLCall(glGenBuffers(1, &buffer));
+  OpenGLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));
+  OpenGLCall(glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW));
 
   // Set up and enable vertex attributes.
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (const void*)0);
-  glEnableVertexAttribArray(0);
+  OpenGLCall(glEnableVertexAttribArray(0));
+  OpenGLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (const void*)0));
 
   unsigned int ibo;
-  glGenBuffers(1, &ibo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-}
-
-static bool s_IsDrawingArrays = false;
-int main(void)
-{
-  GLFWwindow* window = InitOpenGL();
-  if (!window)
-    return -1;
-
-  InitGlew();
-  OpenGLCall(
-    if (s_IsDrawingArrays)
-      InitTriangleVertexBuffer();
-    else
-      InitSquareVertexBuffer();
-  );
+  OpenGLCall(glGenBuffers(1, &ibo));
+  OpenGLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+  OpenGLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW));
 
   ShaderProgramSource shaderSource = ParseShader("Triangle");
   unsigned int shaderProgram = CreateShader(shaderSource);
-  OpenGLCall(glUseProgram(shaderProgram));
+
+  OpenGLCall(glUseProgram(0));
+  OpenGLCall(glBindVertexArray(0));
+  OpenGLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+  OpenGLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
   OpenGLCall(int location = glGetUniformLocation(shaderProgram, "u_Color"));
   assert(location != -1);
@@ -226,19 +228,15 @@ int main(void)
     // Render here
     OpenGLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-    if (s_IsDrawingArrays) 
-    {
-      OpenGLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
-    }
-    else
-    {
-      OpenGLCall(glUniform4f(location, red, 0.3f, 0.8f, 1.0f));
-      OpenGLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+    OpenGLCall(glUseProgram(shaderProgram));
+    OpenGLCall(glUniform4f(location, red, 0.3f, 0.8f, 1.0f));
+    OpenGLCall(glBindVertexArray(vao));
+    
+    OpenGLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
-      if (abs(red) >= 1) 
-        increment *= -1;
-      red += increment;
-    }
+    if (abs(red) >= 1) 
+      increment *= -1;
+    red += increment;
 
     // Swap front and back buffers
     glfwSwapBuffers(window);
