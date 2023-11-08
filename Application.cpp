@@ -53,8 +53,9 @@ static GLFWwindow* InitOpenGL()
   }
 
   // Create the OpenGL context.
-  OpenGLCall(glfwMakeContextCurrent(window));
+  glfwMakeContextCurrent(window);
   
+  glfwSwapInterval(1);
   return window;
 }
 
@@ -77,40 +78,26 @@ struct ShaderProgramSource
   std::string FragmentSource;
 };
 
-static ShaderProgramSource ParseShader(const std::string& filepath)
+static std::stringstream ParseFile(const std::string& filepath)
 {
-  std::ifstream stream(filepath);
-
-  enum class ShaderType
-  {
-    NONE = -1, VERTEX = 0, FRAGMENT = 1
-  };
+  std::ifstream filestream(filepath);
 
   std::string line;
-  std::stringstream ss[2];
-  ShaderType type = ShaderType::NONE;
+  std::stringstream resultstream;
 
-  while(getline(stream, line)) 
+  while (getline(filestream, line))
   {
-    if (line.find("#shader") != std::string::npos) 
-    {
-      if (line.find("vertex") != std::string::npos)
-      {
-        type = ShaderType::VERTEX;
-      }
-      else if (line.find("fragment") != std::string::npos)
-      {
-        type = ShaderType::FRAGMENT;
-
-      }
-    }
-    else if (type != ShaderType::NONE)
-    {
-      ss[(int)type] << line << "\n";
-    }
+    resultstream << line << "\n";
   }
 
-  return { ss[0].str(), ss[1].str() };
+  return resultstream;
+}
+
+static ShaderProgramSource ParseShader(const std::string& filename)
+{
+  std::string vertexSource = ParseFile(filename + ".vert").str();
+  std::string fragmentSource = ParseFile(filename + ".frag").str();
+  return { vertexSource, fragmentSource };
 }
 
 static unsigned int CompileShader(unsigned int type, const std::string& source)
@@ -142,18 +129,18 @@ static unsigned int CompileShader(unsigned int type, const std::string& source)
 
 static unsigned int CreateShader(const ShaderProgramSource& source)
 {
-  unsigned int program = glCreateProgram();
-  unsigned int vs = CompileShader(GL_VERTEX_SHADER, source.VertexSource);
-  unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, source.FragmentSource);
+  OpenGLCall(unsigned int program = glCreateProgram());
+  OpenGLCall(unsigned int vs = CompileShader(GL_VERTEX_SHADER, source.VertexSource));
+  OpenGLCall(unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, source.FragmentSource));
 
-  glAttachShader(program, vs);
-  glAttachShader(program, fs);
+  OpenGLCall(glAttachShader(program, vs));
+  OpenGLCall(glAttachShader(program, fs));
   
-  glLinkProgram(program);
-  glValidateProgram(program);
+  OpenGLCall(glLinkProgram(program));
+  OpenGLCall(glValidateProgram(program));
 
-  glDeleteShader(vs);
-  glDeleteShader(fs);
+  OpenGLCall(glDeleteShader(vs));
+  OpenGLCall(glDeleteShader(fs));
 
   return program;
 }
@@ -208,26 +195,30 @@ void InitSquareVertexBuffer()
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 }
 
-
-static bool s_IsDrawingTriangle = false;
+static bool s_IsDrawingArrays = false;
 int main(void)
 {
-  OpenGLCall(GLFWwindow* window = InitOpenGL());
+  GLFWwindow* window = InitOpenGL();
   if (!window)
     return -1;
 
   InitGlew();
   OpenGLCall(
-    if (s_IsDrawingTriangle)
+    if (s_IsDrawingArrays)
       InitTriangleVertexBuffer();
     else
       InitSquareVertexBuffer();
   );
 
-  ShaderProgramSource shaderSource = ParseShader("Basic.shader");
+  ShaderProgramSource shaderSource = ParseShader("Triangle");
   unsigned int shaderProgram = CreateShader(shaderSource);
-
   OpenGLCall(glUseProgram(shaderProgram));
+
+  OpenGLCall(int location = glGetUniformLocation(shaderProgram, "u_Color"));
+  assert(location != -1);
+
+  float red = 0.0f;
+  float increment = 0.05f;
 
   // Loop until the user closes the window
   while (!glfwWindowShouldClose(window))
@@ -235,24 +226,29 @@ int main(void)
     // Render here
     OpenGLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-    if (s_IsDrawingTriangle) 
+    if (s_IsDrawingArrays) 
     {
       OpenGLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
     }
     else
     {
-      OpenGLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
+      OpenGLCall(glUniform4f(location, red, 0.3f, 0.8f, 1.0f));
+      OpenGLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+
+      if (abs(red) >= 1) 
+        increment *= -1;
+      red += increment;
     }
 
     // Swap front and back buffers
-    OpenGLCall(glfwSwapBuffers(window));
+    glfwSwapBuffers(window);
 
     // Poll for and process events
-    OpenGLCall(glfwPollEvents());
+    glfwPollEvents();
   }
 
   OpenGLCall(glDeleteProgram(shaderProgram));
-  OpenGLCall(glfwTerminate());
+  glfwTerminate();
 
   return 0;
 }
