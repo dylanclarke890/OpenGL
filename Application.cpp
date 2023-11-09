@@ -7,8 +7,8 @@
 #include <cassert>
 
 #include "Renderer.h"
-#include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
 // How to draw a triangle in Legacy OpenGL.
 static void LegacyOpenGL_DrawTriangle()
@@ -173,17 +173,12 @@ int main(void)
       2, 3, 0  // Indices of positions to use for second triangle
     };
 
-    // Create and bind the vertex array
-    unsigned int vao;
-    OpenGLCall(glGenVertexArrays(1, &vao));
-    OpenGLCall(glBindVertexArray(vao));
-
+    VertexArray vertexArray;
     VertexBuffer vertexBuffer(positions, 4 * 2 * sizeof(float));
+    VertexBufferLayout layout;
+    layout.Push<float>(2);
 
-    // Set up and enable vertex attributes.
-    OpenGLCall(glEnableVertexAttribArray(0));
-    OpenGLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (const void*)0));
-
+    vertexArray.AddBuffer(vertexBuffer, layout);
     IndexBuffer indexBuffer(indices, 6);
 
     ShaderProgramSource shaderSource = ParseShader("Triangle");
@@ -208,7 +203,7 @@ int main(void)
 
       OpenGLCall(glUseProgram(shaderProgram));
       OpenGLCall(glUniform4f(location, red, 0.3f, 0.8f, 1.0f));
-      OpenGLCall(glBindVertexArray(vao));
+      vertexArray.Bind();
 
       OpenGLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
