@@ -115,20 +115,19 @@ int main(void)
     indexBuffer.Unbind();
     vertexBuffer.Unbind();
 
+    Renderer renderer;
+
     float red = 0.0f;
     float increment = 0.05f;
-
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
     {
-      // Render here
-      OpenGLCall(glClear(GL_COLOR_BUFFER_BIT));
+      renderer.Clear();
 
       shader.Bind();
-      vertexArray.Bind();
       shader.SetUniform4f("u_Color", red, 0.3f, 0.8f, 1.0f);
 
-      OpenGLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+      renderer.Draw(vertexArray, indexBuffer, shader);
 
       if (abs(red) >= 1)
         increment *= -1;

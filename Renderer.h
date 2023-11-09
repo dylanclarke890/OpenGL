@@ -4,6 +4,10 @@
 #include <cassert>
 #include <iostream>
 
+#include "VertexArray.h"
+#include "IndexBuffer.h"
+#include "Shader.h"
+
 #define OpenGLCall(function)\
   OpenGL_ClearErrors();\
   function;\
@@ -27,3 +31,10 @@ static bool OpenGL_LogCall(const char* function, const char* file, int line)
   }
   return true;
 }
+
+class Renderer
+{
+public:
+  void Clear() const;
+  void Draw(const VertexArray& va, const IndexBuffer& ia, const Shader& shader) const;
+};
