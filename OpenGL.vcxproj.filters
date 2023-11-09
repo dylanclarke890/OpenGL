@@ -26,6 +26,9 @@
     <ClCompile Include="VertexArray.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Triangle.vert">
@@ -49,6 +52,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="VertexBufferLayout.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

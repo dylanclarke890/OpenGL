@@ -2,13 +2,12 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
-#include <fstream>
-#include <sstream>
 #include <cassert>
 
 #include "Renderer.h"
 #include "IndexBuffer.h"
 #include "VertexArray.h"
+#include "Shader.h"
 
 // How to draw a triangle in Legacy OpenGL.
 static void LegacyOpenGL_DrawTriangle()
@@ -80,79 +79,6 @@ static GLFWwindow* InitOpenGL()
   return window;
 }
 
-struct ShaderProgramSource 
-{
-  std::string VertexSource;
-  std::string FragmentSource;
-};
-
-static std::stringstream ParseFile(const std::string& filepath)
-{
-  std::ifstream filestream(filepath);
-
-  std::string line;
-  std::stringstream resultstream;
-
-  while (getline(filestream, line))
-  {
-    resultstream << line << "\n";
-  }
-
-  return resultstream;
-}
-
-static ShaderProgramSource ParseShader(const std::string& filename)
-{
-  std::string vertexSource = ParseFile(filename + ".vert").str();
-  std::string fragmentSource = ParseFile(filename + ".frag").str();
-  return { vertexSource, fragmentSource };
-}
-
-static unsigned int CompileShader(unsigned int type, const std::string& source)
-{
-  unsigned int id = glCreateShader(type);
-  
-  const char* src = source.c_str();
-  glShaderSource(id, 1, &src, nullptr);
-  glCompileShader(id);
-
-  int result;
-  glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-  
-  if (result == GL_FALSE)
-  {
-    int length;
-    glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-
-    char* message = (char*)alloca(length * sizeof(char));
-    glGetShaderInfoLog(id, length, &length, message);
-
-    std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!" << std::endl;
-    std::cout << message << std::endl;
-    return 0;
-  }
-
-  return id;
-}
-
-static unsigned int CreateShader(const ShaderProgramSource& source)
-{
-  OpenGLCall(unsigned int program = glCreateProgram());
-  OpenGLCall(unsigned int vs = CompileShader(GL_VERTEX_SHADER, source.VertexSource));
-  OpenGLCall(unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, source.FragmentSource));
-
-  OpenGLCall(glAttachShader(program, vs));
-  OpenGLCall(glAttachShader(program, fs));
-  
-  OpenGLCall(glLinkProgram(program));
-  OpenGLCall(glValidateProgram(program));
-
-  OpenGLCall(glDeleteShader(vs));
-  OpenGLCall(glDeleteShader(fs));
-
-  return program;
-}
-
 int main(void)
 {
   GLFWwindow* window = InitOpenGL();
@@ -181,16 +107,13 @@ int main(void)
     vertexArray.AddBuffer(vertexBuffer, layout);
     IndexBuffer indexBuffer(indices, 6);
 
-    ShaderProgramSource shaderSource = ParseShader("Triangle");
-    unsigned int shaderProgram = CreateShader(shaderSource);
+    Shader shader("Triangle.vert", "Triangle.frag");
+    shader.Bind();
 
-    OpenGLCall(glUseProgram(0));
-    OpenGLCall(glBindVertexArray(0));
-    OpenGLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
-    OpenGLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-
-    OpenGLCall(int location = glGetUniformLocation(shaderProgram, "u_Color"));
-    assert(location != -1);
+    shader.Unbind();
+    vertexArray.Unbind();
+    indexBuffer.Unbind();
+    vertexBuffer.Unbind();
 
     float red = 0.0f;
     float increment = 0.05f;
@@ -201,9 +124,9 @@ int main(void)
       // Render here
       OpenGLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-      OpenGLCall(glUseProgram(shaderProgram));
-      OpenGLCall(glUniform4f(location, red, 0.3f, 0.8f, 1.0f));
+      shader.Bind();
       vertexArray.Bind();
+      shader.SetUniform4f("u_Color", red, 0.3f, 0.8f, 1.0f);
 
       OpenGLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
@@ -217,8 +140,6 @@ int main(void)
       // Poll for and process events
       glfwPollEvents();
     }
-
-    OpenGLCall(glDeleteProgram(shaderProgram));
   }
 
   glfwTerminate();
