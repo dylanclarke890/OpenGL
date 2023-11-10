@@ -40,7 +40,7 @@ int Shader::GetUniformLocation(const std::string& name)
 
   OpenGLCall(int location = glGetUniformLocation(m_RendererId, name.c_str()));
   if (location == -1)
-    std::cout << "Warning: Uniform '" << name << "' doesn't exist!" << std::endl;
+    std::cout << "[WARNING] [OPENGL]: Uniform '" << name << "' doesn't exist!" << std::endl;
   
   m_UniformLocationCache[name] = location;
   
