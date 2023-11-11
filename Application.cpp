@@ -1,6 +1,9 @@
 #include <GL/glew.h> // Include before GLFW
 #include <GLFW/glfw3.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <iostream>
 #include <cassert>
 
@@ -9,6 +12,9 @@
 #include "VertexArray.h"
 #include "Shader.h"
 #include "Texture.h"
+
+constexpr float WINDOW_HEIGHT = 480.0f;
+constexpr float WINDOW_WIDTH = 640.0f;
 
 // How to draw a triangle in Legacy OpenGL.
 static void LegacyOpenGL_DrawTriangle()
@@ -64,7 +70,7 @@ static GLFWwindow* InitOpenGL()
 
   // Create a windowed mode window and it's OpenGL context
   GLFWwindow* window;
-  window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+  window = glfwCreateWindow((int)WINDOW_WIDTH, (int)WINDOW_HEIGHT, "Hello World", NULL, NULL);
   if (!window)
   {
     glfwTerminate();
@@ -88,10 +94,10 @@ int main(void)
   {
     // Defining square positions to draw later in Modern OpenGL.
     float positions[] = {
-      -0.5f, -0.5f, 0.0f, 0.0f, // 0
-      0.5f, -0.5f, 1.0f, 0.0f, // 1
-      0.5f, 0.5f, 1.0f, 1.0f,   // 2
-      -0.5f, 0.5f, 0.0f, 1.0f   // 3
+      100.0f, 100.0f, 0.0f, 0.0f, // 0
+      200.0f, 100.0f, 1.0f, 0.0f, // 1
+      200.0f, 200.0, 1.0f, 1.0f,  // 2
+      100.0f, 200.0, 0.0f, 1.0f   // 3
     };
 
     // Using an index buffer to avoid storing data for the same vertex multiple times
@@ -112,12 +118,15 @@ int main(void)
     vertexArray.AddBuffer(vertexBuffer, layout);
     IndexBuffer indexBuffer(indices, 6);
 
+    glm::mat4 projection = glm::ortho(0.0f, WINDOW_WIDTH, 0.0f, WINDOW_HEIGHT, -1.0f, 1.0f);
+
     Shader shader("Basic.vert", "Basic.frag");
     shader.Bind();
 
     Texture texture("crazy-love.png");
     texture.Bind();
     shader.SetUniform1i("u_Texture", 0);
+    shader.SetUniformMat4f("u_ModelViewProjectionMatrix", projection);
 
     shader.Unbind();
     vertexArray.Unbind();
