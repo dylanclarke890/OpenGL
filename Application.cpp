@@ -96,10 +96,10 @@ int main(void)
   {
     // Defining square positions to draw later in Modern OpenGL.
     float positions[] = {
-      100.0f, 100.0f, 0.0f, 0.0f, // 0
-      200.0f, 100.0f, 1.0f, 0.0f, // 1
-      200.0f, 200.0, 1.0f, 1.0f,  // 2
-      100.0f, 200.0, 0.0f, 1.0f   // 3
+      -50.0f, -50.0f, 0.0f, 0.0f, // 0
+       50.0f, -50.0f, 1.0f, 0.0f, // 1
+       50.0f,  50.0f, 1.0f, 1.0f,  // 2
+      -50.0f,  50.0f, 0.0f, 1.0f   // 3
     };
 
     // Using an index buffer to avoid storing data for the same vertex multiple times
@@ -121,7 +121,7 @@ int main(void)
     IndexBuffer indexBuffer(indices, 6);
 
     glm::mat4 projection = glm::ortho(0.0f, WINDOW_WIDTH, 0.0f, WINDOW_HEIGHT, -1.0f, 1.0f);
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100.0f, 0.0f, 0.0f));
+    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
     Shader shader("Basic.vert", "Basic.frag");
     shader.Bind();
@@ -141,7 +141,8 @@ int main(void)
     ImGui_ImplGlfwGL3_Init(window, true);
     ImGui::StyleColorsDark();
 
-    glm::vec3 translation(200.0f, 200.0f, 0.0f);
+    glm::vec3 translationA(200.0f, 200.0f, 0.0f);
+    glm::vec3 translationB(400.0f, 200.0f, 0.0f);
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
@@ -150,16 +151,25 @@ int main(void)
 
       ImGui_ImplGlfwGL3_NewFrame();
 
-      glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
-      glm::mat4 mvp = projection * view * model;
-
-      shader.Bind();
-      shader.SetUniformMat4f("u_ModelViewProjectionMatrix", mvp);
-
-      renderer.Draw(vertexArray, indexBuffer, shader);
+      {
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
+        glm::mat4 mvp = projection * view * model;
+        shader.Bind();
+        shader.SetUniformMat4f("u_ModelViewProjectionMatrix", mvp);
+        renderer.Draw(vertexArray, indexBuffer, shader);
+      }
 
       {
-        ImGui::SliderFloat3("Translation", &translation.x, 0.0f, WINDOW_WIDTH);
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB);
+        glm::mat4 mvp = projection * view * model;
+        shader.Bind();
+        shader.SetUniformMat4f("u_ModelViewProjectionMatrix", mvp);
+        renderer.Draw(vertexArray, indexBuffer, shader);
+      }
+
+      {
+        ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, WINDOW_WIDTH);
+        ImGui::SliderFloat3("Translation B", &translationB.x, 0.0f, WINDOW_WIDTH);
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
       }
 
