@@ -94,16 +94,16 @@ int main(void)
       ImGui::End();
     }
 
-    if (testMenu != currentTest)
-      delete testMenu;
-    delete currentTest;
-
     ImGui::Render();
     ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
 
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
+
+  if (testMenu != currentTest)
+    delete testMenu;
+  delete currentTest;
 
   ImGui_ImplGlfwGL3_Shutdown();
   ImGui::DestroyContext();
