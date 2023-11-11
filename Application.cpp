@@ -3,6 +3,8 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw_gl3.h>
 
 #include <iostream>
 #include <cassert>
@@ -120,8 +122,6 @@ int main(void)
 
     glm::mat4 projection = glm::ortho(0.0f, WINDOW_WIDTH, 0.0f, WINDOW_HEIGHT, -1.0f, 1.0f);
     glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100.0f, 0.0f, 0.0f));
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200.0f, 200.0f, 0.0f));
-    glm::mat4 mvp = projection * view * model;
 
     Shader shader("Basic.vert", "Basic.frag");
     shader.Bind();
@@ -129,7 +129,6 @@ int main(void)
     Texture texture("crazy-love.png");
     texture.Bind();
     shader.SetUniform1i("u_Texture", 0);
-    shader.SetUniformMat4f("u_ModelViewProjectionMatrix", mvp);
 
     shader.Unbind();
     vertexArray.Unbind();
@@ -138,30 +137,43 @@ int main(void)
 
     Renderer renderer;
 
-    float red = 0.0f;
-    float increment = 0.05f;
+    ImGui::CreateContext();
+    ImGui_ImplGlfwGL3_Init(window, true);
+    ImGui::StyleColorsDark();
+
+    glm::vec3 translation(200.0f, 200.0f, 0.0f);
+
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window))
     {
       renderer.Clear();
 
+      ImGui_ImplGlfwGL3_NewFrame();
+
+      glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
+      glm::mat4 mvp = projection * view * model;
+
       shader.Bind();
-      shader.SetUniform4f("u_Color", red, 0.3f, 0.8f, 1.0f);
+      shader.SetUniformMat4f("u_ModelViewProjectionMatrix", mvp);
 
       renderer.Draw(vertexArray, indexBuffer, shader);
 
-      if (abs(red) >= 1)
-        increment *= -1;
-      red += increment;
+      {
+        ImGui::SliderFloat3("Translation", &translation.x, 0.0f, WINDOW_WIDTH);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+      }
 
-      // Swap front and back buffers
+      ImGui::Render();
+      ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
+
       glfwSwapBuffers(window);
-
-      // Poll for and process events
       glfwPollEvents();
     }
   }
 
+  ImGui_ImplGlfwGL3_Shutdown();
+  ImGui::DestroyContext();
   glfwTerminate();
+
   return 0;
 }
