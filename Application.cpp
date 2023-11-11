@@ -10,10 +10,7 @@
 #include <cassert>
 
 #include "Renderer.h"
-#include "IndexBuffer.h"
-#include "VertexArray.h"
-#include "Shader.h"
-#include "Texture.h"
+#include "Tests/TestClearColor.h"
 
 constexpr float WINDOW_HEIGHT = 540.0f;
 constexpr float WINDOW_WIDTH = 960.0f;
@@ -93,92 +90,33 @@ int main(void)
   GLFWwindow* window = InitOpenGL();
   assert(window);
 
+  OpenGLCall(glEnable(GL_BLEND));
+  OpenGLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+  Renderer renderer;
+
+  ImGui::CreateContext();
+  ImGui_ImplGlfwGL3_Init(window, true);
+  ImGui::StyleColorsDark();
+
+  test::ClearColor test;
+
+  // Loop until the user closes the window
+  while (!glfwWindowShouldClose(window))
   {
-    // Defining square positions to draw later in Modern OpenGL.
-    float positions[] = {
-      -50.0f, -50.0f, 0.0f, 0.0f, // 0
-       50.0f, -50.0f, 1.0f, 0.0f, // 1
-       50.0f,  50.0f, 1.0f, 1.0f,  // 2
-      -50.0f,  50.0f, 0.0f, 1.0f   // 3
-    };
+    renderer.Clear();
 
-    // Using an index buffer to avoid storing data for the same vertex multiple times
-    unsigned int indices[] = {
-      0, 1, 2, // Indices of positions to use for first triangle
-      2, 3, 0  // Indices of positions to use for second triangle
-    };
+    test.OnUpdate(0.0f);
+    test.OnRender();
 
-    OpenGLCall(glEnable(GL_BLEND));
-    OpenGLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    ImGui_ImplGlfwGL3_NewFrame();
+    test.OnImGuiRender();
 
-    VertexArray vertexArray;
-    VertexBuffer vertexBuffer(positions, 4 * 4 * sizeof(float));
-    VertexBufferLayout layout;
-    layout.Push<float>(2);
-    layout.Push<float>(2);
+    ImGui::Render();
+    ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
 
-    vertexArray.AddBuffer(vertexBuffer, layout);
-    IndexBuffer indexBuffer(indices, 6);
-
-    glm::mat4 projection = glm::ortho(0.0f, WINDOW_WIDTH, 0.0f, WINDOW_HEIGHT, -1.0f, 1.0f);
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-
-    Shader shader("Basic.vert", "Basic.frag");
-    shader.Bind();
-
-    Texture texture("crazy-love.png");
-    texture.Bind();
-    shader.SetUniform1i("u_Texture", 0);
-
-    shader.Unbind();
-    vertexArray.Unbind();
-    indexBuffer.Unbind();
-    vertexBuffer.Unbind();
-
-    Renderer renderer;
-
-    ImGui::CreateContext();
-    ImGui_ImplGlfwGL3_Init(window, true);
-    ImGui::StyleColorsDark();
-
-    glm::vec3 translationA(200.0f, 200.0f, 0.0f);
-    glm::vec3 translationB(400.0f, 200.0f, 0.0f);
-
-    // Loop until the user closes the window
-    while (!glfwWindowShouldClose(window))
-    {
-      renderer.Clear();
-
-      ImGui_ImplGlfwGL3_NewFrame();
-
-      {
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
-        glm::mat4 mvp = projection * view * model;
-        shader.Bind();
-        shader.SetUniformMat4f("u_ModelViewProjectionMatrix", mvp);
-        renderer.Draw(vertexArray, indexBuffer, shader);
-      }
-
-      {
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB);
-        glm::mat4 mvp = projection * view * model;
-        shader.Bind();
-        shader.SetUniformMat4f("u_ModelViewProjectionMatrix", mvp);
-        renderer.Draw(vertexArray, indexBuffer, shader);
-      }
-
-      {
-        ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, WINDOW_WIDTH);
-        ImGui::SliderFloat3("Translation B", &translationB.x, 0.0f, WINDOW_WIDTH);
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-      }
-
-      ImGui::Render();
-      ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
-
-      glfwSwapBuffers(window);
-      glfwPollEvents();
-    }
+    glfwSwapBuffers(window);
+    glfwPollEvents();
   }
 
   ImGui_ImplGlfwGL3_Shutdown();

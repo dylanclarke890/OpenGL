@@ -50,6 +50,9 @@
     <ClCompile Include="ThirdParty\imgui\imgui_impl_glfw_gl3.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Tests\TestClearColor.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Basic.vert">
@@ -103,6 +106,12 @@
       <Filter>ThirdParty</Filter>
     </ClInclude>
     <ClInclude Include="ThirdParty\imgui\stb_truetype.h">
+      <Filter>ThirdParty</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\Test.h">
+      <Filter>ThirdParty</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\TestClearColor.h">
       <Filter>ThirdParty</Filter>
     </ClInclude>
   </ItemGroup>
