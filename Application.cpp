@@ -15,48 +15,6 @@
 constexpr float WINDOW_HEIGHT = 540.0f;
 constexpr float WINDOW_WIDTH = 960.0f;
 
-// How to draw a triangle in Legacy OpenGL.
-static void LegacyOpenGL_DrawTriangle()
-{
-  glBegin(GL_TRIANGLES);
-  glVertex2f(-0.5f, -0.5f);
-  glVertex2f(0.0f, 0.5f);
-  glVertex2f(0.5f, -0.5f);
-  glEnd();
-}
-
-void InitTriangleVertexBuffer()
-{
-  // Defining a triangle to draw later in Modern OpenGL.
-  float positions[6] = {
-    -0.5f, -0.5,
-    0.0f, 0.5f,
-    0.5f, -0.5f
-  };
-
-  unsigned int buffer;
-  glGenBuffers(1, &buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, buffer);
-  glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
-
-  // Set up and enable vertex attributes.
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (const void*)0);
-  glEnableVertexAttribArray(0);
-}
-
-// Init GLEW. Should be called after creating a valid OpenGL context.
-static void InitGlew()
-{
-  if (glewInit() == GLEW_OK)
-  {
-    std::cout << "Initialised GLEW - " << glGetString(GL_VERSION) << std::endl;
-  }
-  else
-  {
-    std::cout << "Error initialising glew!" << std::endl;
-  }
-}
-
 static GLFWwindow* InitOpenGL()
 {
   // Initialize the OpenGL library.
@@ -80,7 +38,15 @@ static GLFWwindow* InitOpenGL()
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
 
-  InitGlew();
+  // Init GLEW. Should be called after creating a valid OpenGL context.
+  if (glewInit() == GLEW_OK)
+  {
+    std::cout << "Initialised GLEW - " << glGetString(GL_VERSION) << std::endl;
+  }
+  else
+  {
+    std::cout << "Error initialising glew!" << std::endl;
+  }
 
   return window;
 }
@@ -99,18 +65,38 @@ int main(void)
   ImGui_ImplGlfwGL3_Init(window, true);
   ImGui::StyleColorsDark();
 
-  test::ClearColor test;
+  test::Test* currentTest = nullptr;
+  test::TestMenu* testMenu = new test::TestMenu(currentTest);
+  currentTest = testMenu;
+
+  testMenu->RegisterTest<test::ClearColor>("Clear Color");
 
   // Loop until the user closes the window
   while (!glfwWindowShouldClose(window))
   {
+    OpenGLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
     renderer.Clear();
 
-    test.OnUpdate(0.0f);
-    test.OnRender();
-
     ImGui_ImplGlfwGL3_NewFrame();
-    test.OnImGuiRender();
+
+    if (currentTest) 
+    {
+      currentTest->OnUpdate(0.0f);
+      currentTest->OnRender();
+
+      ImGui::Begin("Test");
+      if (currentTest != testMenu && ImGui::Button("<--"))
+      {
+        delete currentTest;
+        currentTest = testMenu;
+      }
+      currentTest->OnImGuiRender();
+      ImGui::End();
+    }
+
+    if (testMenu != currentTest)
+      delete testMenu;
+    delete currentTest;
 
     ImGui::Render();
     ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
