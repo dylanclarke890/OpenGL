@@ -14,113 +14,113 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Application.cpp">
+    <ClCompile Include="src\Application.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="VertexBuffer.cpp">
+    <ClCompile Include="src\VertexBuffer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="IndexBuffer.cpp">
+    <ClCompile Include="src\IndexBuffer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="VertexArray.cpp">
+    <ClCompile Include="src\VertexArray.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Shader.cpp">
+    <ClCompile Include="src\Shader.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer.cpp">
+    <ClCompile Include="src\Renderer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="ThirdParty\stb_image\stb_image.cpp">
+    <ClCompile Include="src\ThirdParty\stb_image\stb_image.cpp">
       <Filter>ThirdParty</Filter>
     </ClCompile>
-    <ClCompile Include="Texture.cpp">
+    <ClCompile Include="src\Texture.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="ThirdParty\imgui\imgui.cpp">
+    <ClCompile Include="src\ThirdParty\imgui\imgui.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="ThirdParty\imgui\imgui_draw.cpp">
+    <ClCompile Include="src\ThirdParty\imgui\imgui_draw.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="ThirdParty\imgui\imgui_demo.cpp">
+    <ClCompile Include="src\ThirdParty\imgui\imgui_demo.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="ThirdParty\imgui\imgui_impl_glfw_gl3.cpp">
+    <ClCompile Include="src\ThirdParty\imgui\imgui_impl_glfw_gl3.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Tests\TestClearColor.cpp">
+    <ClCompile Include="src\Tests\TestClearColor.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Tests\Test.cpp">
+    <ClCompile Include="src\Tests\Test.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Tests\TestTexture2D.cpp">
+    <ClCompile Include="src\Tests\TestTexture2D.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Basic.vert">
+    <None Include="src\resources\Basic.vert">
       <Filter>Resources</Filter>
     </None>
-    <None Include="Basic.frag">
+    <None Include="src\resources\Basic.frag">
       <Filter>Resources</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="IndexBuffer.h">
+    <ClInclude Include="src\IndexBuffer.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer.h">
+    <ClInclude Include="src\Renderer.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Shader.h">
+    <ClInclude Include="src\Shader.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="VertexArray.h">
+    <ClInclude Include="src\VertexArray.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="VertexBuffer.h">
+    <ClInclude Include="src\VertexBuffer.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="VertexBufferLayout.h">
+    <ClInclude Include="src\VertexBufferLayout.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Texture.h">
+    <ClInclude Include="src\Texture.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="ThirdParty\stb_image\stb_image.h">
+    <ClInclude Include="src\ThirdParty\stb_image\stb_image.h">
       <Filter>ThirdParty</Filter>
     </ClInclude>
-    <ClInclude Include="ThirdParty\imgui\imconfig.h">
+    <ClInclude Include="src\ThirdParty\imgui\imconfig.h">
       <Filter>ThirdParty</Filter>
     </ClInclude>
-    <ClInclude Include="ThirdParty\imgui\imgui.h">
+    <ClInclude Include="src\ThirdParty\imgui\imgui.h">
       <Filter>ThirdParty</Filter>
     </ClInclude>
-    <ClInclude Include="ThirdParty\imgui\imgui_impl_glfw_gl3.h">
+    <ClInclude Include="src\ThirdParty\imgui\imgui_impl_glfw_gl3.h">
       <Filter>ThirdParty</Filter>
     </ClInclude>
-    <ClInclude Include="ThirdParty\imgui\imgui_internal.h">
+    <ClInclude Include="src\ThirdParty\imgui\imgui_internal.h">
       <Filter>ThirdParty</Filter>
     </ClInclude>
-    <ClInclude Include="ThirdParty\imgui\stb_rect_pack.h">
+    <ClInclude Include="src\ThirdParty\imgui\stb_rect_pack.h">
       <Filter>ThirdParty</Filter>
     </ClInclude>
-    <ClInclude Include="ThirdParty\imgui\stb_textedit.h">
+    <ClInclude Include="src\ThirdParty\imgui\stb_textedit.h">
       <Filter>ThirdParty</Filter>
     </ClInclude>
-    <ClInclude Include="ThirdParty\imgui\stb_truetype.h">
+    <ClInclude Include="src\ThirdParty\imgui\stb_truetype.h">
       <Filter>ThirdParty</Filter>
     </ClInclude>
-    <ClInclude Include="Tests\Test.h">
+    <ClInclude Include="src\Tests\Test.h">
       <Filter>ThirdParty</Filter>
     </ClInclude>
-    <ClInclude Include="Tests\TestClearColor.h">
+    <ClInclude Include="src\Tests\TestClearColor.h">
       <Filter>ThirdParty</Filter>
     </ClInclude>
-    <ClInclude Include="Tests\TestTexture2D.h">
+    <ClInclude Include="src\Tests\TestTexture2D.h">
       <Filter>ThirdParty</Filter>
     </ClInclude>
   </ItemGroup>
