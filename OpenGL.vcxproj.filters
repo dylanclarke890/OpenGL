@@ -8,7 +8,7 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Headers">
+    <Filter Include="ThirdParty">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
@@ -32,33 +32,45 @@
     <ClCompile Include="Renderer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="ThirdParty\stb_image\stb_image.cpp">
+      <Filter>ThirdParty</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Triangle.vert">
+    <None Include="Basic.vert">
       <Filter>Resources</Filter>
     </None>
-    <None Include="Triangle.frag">
+    <None Include="Basic.frag">
       <Filter>Resources</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Renderer.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="VertexBuffer.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="IndexBuffer.h">
-      <Filter>Headers</Filter>
+      <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="VertexArray.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="VertexBufferLayout.h">
-      <Filter>Headers</Filter>
+    <ClInclude Include="Renderer.h">
+      <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Shader.h">
-      <Filter>Headers</Filter>
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexArray.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexBuffer.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexBufferLayout.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\stb_image\stb_image.h">
+      <Filter>ThirdParty</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

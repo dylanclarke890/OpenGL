@@ -1,7 +1,7 @@
 #include "VertexArray.h"
 #include "Renderer.h"
 
-VertexArray::VertexArray()
+VertexArray::VertexArray(): m_RendererId(0)
 {
   OpenGLCall(glGenVertexArrays(1, &m_RendererId));
   OpenGLCall(glBindVertexArray(m_RendererId));

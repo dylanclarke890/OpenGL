@@ -8,6 +8,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
+#include "Texture.h"
 
 // How to draw a triangle in Legacy OpenGL.
 static void LegacyOpenGL_DrawTriangle()
@@ -87,10 +88,10 @@ int main(void)
   {
     // Defining square positions to draw later in Modern OpenGL.
     float positions[] = {
-      -0.5f, -0.5f, // 0
-      0.5f, -0.5f,  // 1
-      0.5f, 0.5f,   // 2
-      -0.5f, 0.5f   // 3
+      -0.5f, -0.5f, 0.0f, 0.0f, // 0
+      0.5f, -0.5f, 1.0f, 0.0f, // 1
+      0.5f, 0.5f, 1.0f, 1.0f,   // 2
+      -0.5f, 0.5f, 0.0f, 1.0f   // 3
     };
 
     // Using an index buffer to avoid storing data for the same vertex multiple times
@@ -99,16 +100,24 @@ int main(void)
       2, 3, 0  // Indices of positions to use for second triangle
     };
 
+    OpenGLCall(glEnable(GL_BLEND));
+    OpenGLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
     VertexArray vertexArray;
-    VertexBuffer vertexBuffer(positions, 4 * 2 * sizeof(float));
+    VertexBuffer vertexBuffer(positions, 4 * 4 * sizeof(float));
     VertexBufferLayout layout;
+    layout.Push<float>(2);
     layout.Push<float>(2);
 
     vertexArray.AddBuffer(vertexBuffer, layout);
     IndexBuffer indexBuffer(indices, 6);
 
-    Shader shader("Triangle.vert", "Triangle.frag");
+    Shader shader("Basic.vert", "Basic.frag");
     shader.Bind();
+
+    Texture texture("crazy-love.png");
+    texture.Bind();
+    shader.SetUniform1i("u_Texture", 0);
 
     shader.Unbind();
     vertexArray.Unbind();
