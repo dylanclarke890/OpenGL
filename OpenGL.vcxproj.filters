@@ -56,6 +56,9 @@
     <ClCompile Include="Tests\Test.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Tests\TestTexture2D.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Basic.vert">
@@ -115,6 +118,9 @@
       <Filter>ThirdParty</Filter>
     </ClInclude>
     <ClInclude Include="Tests\TestClearColor.h">
+      <Filter>ThirdParty</Filter>
+    </ClInclude>
+    <ClInclude Include="Tests\TestTexture2D.h">
       <Filter>ThirdParty</Filter>
     </ClInclude>
   </ItemGroup>
