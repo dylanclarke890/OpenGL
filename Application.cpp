@@ -13,8 +13,8 @@
 #include "Shader.h"
 #include "Texture.h"
 
-constexpr float WINDOW_HEIGHT = 480.0f;
-constexpr float WINDOW_WIDTH = 640.0f;
+constexpr float WINDOW_HEIGHT = 540.0f;
+constexpr float WINDOW_WIDTH = 960.0f;
 
 // How to draw a triangle in Legacy OpenGL.
 static void LegacyOpenGL_DrawTriangle()
@@ -119,6 +119,9 @@ int main(void)
     IndexBuffer indexBuffer(indices, 6);
 
     glm::mat4 projection = glm::ortho(0.0f, WINDOW_WIDTH, 0.0f, WINDOW_HEIGHT, -1.0f, 1.0f);
+    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-100.0f, 0.0f, 0.0f));
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(200.0f, 200.0f, 0.0f));
+    glm::mat4 mvp = projection * view * model;
 
     Shader shader("Basic.vert", "Basic.frag");
     shader.Bind();
@@ -126,7 +129,7 @@ int main(void)
     Texture texture("crazy-love.png");
     texture.Bind();
     shader.SetUniform1i("u_Texture", 0);
-    shader.SetUniformMat4f("u_ModelViewProjectionMatrix", projection);
+    shader.SetUniformMat4f("u_ModelViewProjectionMatrix", mvp);
 
     shader.Unbind();
     vertexArray.Unbind();
