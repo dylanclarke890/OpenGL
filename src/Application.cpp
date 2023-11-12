@@ -1,8 +1,6 @@
 #include <GL/glew.h> // Include before GLFW
 #include <GLFW/glfw3.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw_gl3.h>
 
@@ -11,9 +9,7 @@
 
 #include "Renderer.h"
 #include "Tests/TestClearColor.h"
-
-constexpr float WINDOW_HEIGHT = 540.0f;
-constexpr float WINDOW_WIDTH = 960.0f;
+#include "Tests/TestTexture2D.h"
 
 static GLFWwindow* InitOpenGL()
 {
@@ -70,6 +66,7 @@ int main(void)
   currentTest = testMenu;
 
   testMenu->RegisterTest<test::ClearColor>("Clear Color");
+  testMenu->RegisterTest<test::Texture2D>("2D Texture");
 
   // Loop until the user closes the window
   while (!glfwWindowShouldClose(window))

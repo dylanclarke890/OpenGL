@@ -13,6 +13,9 @@
   function;\
   assert(OpenGL_LogCall(#function, __FILE__, __LINE__));
 
+constexpr float WINDOW_HEIGHT = 540.0f;
+constexpr float WINDOW_WIDTH = 960.0f;
+
 static void OpenGL_ClearErrors();
 static bool OpenGL_LogCall(const char* function, const char* file, int line);
 
